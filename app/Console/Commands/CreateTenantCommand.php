@@ -4,16 +4,15 @@ namespace App\Console\Commands;
 
 use App\Models\Tenant;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 use Throwable;
 
 class CreateTenantCommand extends Command
 {
     protected $signature = 'tenants:create
-                            {id? : Tenant slug used in the URL path /{id} (generated if omitted)}
+                            {id? : Tenant id / slug stored in the central DB (UUID if omitted)}
                             {--name= : Optional display name stored on the tenant}';
 
-    protected $description = 'Create a tenant and provision its dedicated database (single-domain path tenancy)';
+    protected $description = 'Create a tenant and provision its dedicated database (session-based single-domain tenancy)';
 
     public function handle(): int
     {
@@ -48,12 +47,10 @@ class CreateTenantCommand extends Command
 
         $this->info('Tenant created.');
         $this->line('  id:       '.$tenantKey);
-        $this->line('  url path: /'.$tenantKey);
         $this->line('  database: '.$tenant->database()->getName());
-
-        if (! Str::isUuid($tenantKey)) {
-            $this->comment('Visit: '.rtrim((string) config('app.url'), '/').'/'.$tenantKey);
-        }
+        $this->comment('Select tenant into session (temporary until auth exists):');
+        $this->line('  POST /tenancy/enter/'.$tenantKey);
+        $this->line('  then open /app');
 
         return self::SUCCESS;
     }

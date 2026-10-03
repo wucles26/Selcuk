@@ -49,14 +49,22 @@ class TenantProvisioningTest extends TestCase
         tenancy()->end();
     }
 
-    public function test_tenant_path_uses_tenant_database(): void
+    public function test_tenant_app_uses_session_selected_database(): void
     {
         Tenant::create(['id' => 'demo']);
 
-        $response = $this->get('/demo');
+        $this->from('/')
+            ->post('/tenancy/enter/demo')
+            ->assertRedirect('/app');
 
-        $response->assertOk()
+        $this->get('/app')
+            ->assertOk()
             ->assertJsonPath('tenant_id', 'demo')
             ->assertJsonPath('database', database_path('tenantdemo'));
+    }
+
+    public function test_tenant_app_redirects_without_session(): void
+    {
+        $this->get('/app')->assertRedirect('/');
     }
 }
