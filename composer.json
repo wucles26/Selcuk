@@ -1,0 +1,7 @@
+{
+  "name": "selcuk/site",
+  "description": "Selcuk PHP sitesi",
+  "require": {
+    "php": ">=8.2"
+  }
+}
