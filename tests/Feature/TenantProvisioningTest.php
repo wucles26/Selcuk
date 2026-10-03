@@ -26,9 +26,9 @@ class TenantProvisioningTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_central_home_page_is_available_on_central_domain(): void
+    public function test_central_home_page_is_available_on_single_domain(): void
     {
-        $response = $this->get('http://localhost/');
+        $response = $this->get('/');
 
         $response->assertOk();
     }
@@ -36,7 +36,6 @@ class TenantProvisioningTest extends TestCase
     public function test_creating_a_tenant_provisions_a_separate_database(): void
     {
         $tenant = Tenant::create(['id' => 'acme']);
-        $tenant->domains()->create(['domain' => 'acme.localhost']);
 
         $databaseName = $tenant->database()->getName();
         $this->assertSame('tenantacme', $databaseName);
@@ -50,12 +49,11 @@ class TenantProvisioningTest extends TestCase
         tenancy()->end();
     }
 
-    public function test_tenant_route_uses_tenant_database(): void
+    public function test_tenant_path_uses_tenant_database(): void
     {
-        $tenant = Tenant::create(['id' => 'demo']);
-        $tenant->domains()->create(['domain' => 'demo.localhost']);
+        Tenant::create(['id' => 'demo']);
 
-        $response = $this->get('http://demo.localhost/');
+        $response = $this->get('/demo');
 
         $response->assertOk()
             ->assertJsonPath('tenant_id', 'demo')

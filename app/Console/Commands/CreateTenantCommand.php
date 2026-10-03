@@ -4,31 +4,31 @@ namespace App\Console\Commands;
 
 use App\Models\Tenant;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use Throwable;
 
 class CreateTenantCommand extends Command
 {
     protected $signature = 'tenants:create
-                            {id? : Optional tenant id (UUID generated if omitted)}
-                            {--domain= : Domain that identifies this tenant (required)}
+                            {id? : Tenant slug used in the URL path /{id} (generated if omitted)}
                             {--name= : Optional display name stored on the tenant}';
 
-    protected $description = 'Create a tenant, provision its database, and attach a domain';
+    protected $description = 'Create a tenant and provision its dedicated database (single-domain path tenancy)';
 
     public function handle(): int
     {
-        $domain = $this->option('domain');
-
-        if (! is_string($domain) || $domain === '') {
-            $this->error('The --domain option is required.');
-
-            return self::FAILURE;
-        }
-
         $attributes = [];
 
-        if (is_string($this->argument('id')) && $this->argument('id') !== '') {
-            $attributes['id'] = $this->argument('id');
+        $id = $this->argument('id');
+
+        if (is_string($id) && $id !== '') {
+            if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $id)) {
+                $this->error('Tenant id must be a URL-safe slug (lowercase letters, numbers, hyphens).');
+
+                return self::FAILURE;
+            }
+
+            $attributes['id'] = $id;
         }
 
         if (is_string($this->option('name')) && $this->option('name') !== '') {
@@ -37,7 +37,6 @@ class CreateTenantCommand extends Command
 
         try {
             $tenant = Tenant::create($attributes);
-            $tenant->domains()->create(['domain' => $domain]);
         } catch (Throwable $exception) {
             $this->error('Failed to create tenant: '.$exception->getMessage());
             $this->warn('MySQL users need CREATE DATABASE privilege to auto-provision tenant databases.');
@@ -45,10 +44,16 @@ class CreateTenantCommand extends Command
             return self::FAILURE;
         }
 
+        $tenantKey = (string) $tenant->getTenantKey();
+
         $this->info('Tenant created.');
-        $this->line('  id:       '.$tenant->getTenantKey());
-        $this->line('  domain:   '.$domain);
+        $this->line('  id:       '.$tenantKey);
+        $this->line('  url path: /'.$tenantKey);
         $this->line('  database: '.$tenant->database()->getName());
+
+        if (! Str::isUuid($tenantKey)) {
+            $this->comment('Visit: '.rtrim((string) config('app.url'), '/').'/'.$tenantKey);
+        }
 
         return self::SUCCESS;
     }

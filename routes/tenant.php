@@ -4,24 +4,22 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 
 /*
 |--------------------------------------------------------------------------
-| Tenant Routes
+| Tenant Routes (single-domain, path-based)
 |--------------------------------------------------------------------------
 |
-| These routes are only available on tenant domains. Tenancy is initialized
-| by domain, then the request switches to that tenant's database.
+| One domain serves everyone. The tenant is selected from the first URL
+| segment, e.g. /acme/dashboard → tenant id "acme".
 |
 */
 
 Route::middleware([
     'web',
-    InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class,
-])->group(function () {
+    InitializeTenancyByPath::class,
+])->prefix('/{tenant}')->group(function () {
     Route::get('/', function () {
         return response()->json([
             'message' => 'Tenant application',
