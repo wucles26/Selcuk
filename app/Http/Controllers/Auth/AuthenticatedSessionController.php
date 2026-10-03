@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Support\TenantSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,8 +48,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         $request->session()->regenerate();
-        $request->session()->put('tenant_id', $tenant->getTenantKey());
-        tenancy()->end();
+        TenantSession::remember((string) $tenant->getTenantKey());
 
         return redirect()->intended(route('dashboard'));
     }
@@ -56,6 +56,7 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
+        TenantSession::forget();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
