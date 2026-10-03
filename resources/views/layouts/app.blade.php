@@ -106,7 +106,7 @@
         <div class="topbar-meta">
             <span class="badge">{{ tenant('id') }}</span>
             <span>{{ auth()->user()->name }}</span>
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="/app/logout">
                 @csrf
                 <button class="btn-link" type="submit">Çıkış</button>
             </form>

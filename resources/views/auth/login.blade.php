@@ -10,7 +10,7 @@
         <p class="error" style="margin-bottom: 1rem;">{{ session('error') }}</p>
     @endif
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="/login">
         @csrf
 
         <div class="field">

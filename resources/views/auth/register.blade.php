@@ -6,7 +6,7 @@
     <h1>Organizasyon oluştur</h1>
     <p class="subtitle">Kayıt olduğunuzda size özel bir veritabanı açılır.</p>
 
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="/register">
         @csrf
 
         <div class="field">
