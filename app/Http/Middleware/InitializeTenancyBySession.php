@@ -19,7 +19,7 @@ class InitializeTenancyBySession
         $tenantId = $request->session()->get('tenant_id');
 
         if (! is_string($tenantId) || $tenantId === '') {
-            return redirect('/')->with('error', 'Önce bir tenant seçmeniz gerekiyor.');
+            return redirect()->route('login')->with('error', 'Lütfen giriş yapın.');
         }
 
         $tenant = Tenant::find($tenantId);
@@ -27,7 +27,7 @@ class InitializeTenancyBySession
         if (! $tenant) {
             $request->session()->forget('tenant_id');
 
-            return redirect('/')->with('error', 'Seçili tenant bulunamadı.');
+            return redirect()->route('login')->with('error', 'Seçili organizasyon bulunamadı.');
         }
 
         tenancy()->initialize($tenant);

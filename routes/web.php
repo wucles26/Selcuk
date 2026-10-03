@@ -1,8 +1,7 @@
 <?php
 
-use App\Http\Middleware\InitializeTenancyBySession;
-use App\Models\Tenant;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -10,8 +9,8 @@ use Illuminate\Support\Facades\Route;
 | Central routes (single domain)
 |--------------------------------------------------------------------------
 |
-| Tenants are NOT identified by domain or URL path. After a tenant is
-| selected (session), /app/* runs against that tenant's database.
+| Registration creates a tenant + first user. Login selects the tenant into
+| session and authenticates against that tenant's database.
 |
 */
 
@@ -19,24 +18,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post('/tenancy/enter/{tenant}', function (Request $request, string $tenant) {
-    $model = Tenant::find($tenant);
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store']);
 
-    if (! $model) {
-        abort(404, 'Tenant not found.');
-    }
-
-    $request->session()->put('tenant_id', $model->getTenantKey());
-
-    return redirect('/app');
-})->name('tenancy.enter');
-
-Route::post('/tenancy/leave', function (Request $request) {
-    if (tenancy()->initialized) {
-        tenancy()->end();
-    }
-
-    $request->session()->forget('tenant_id');
-
-    return redirect('/');
-})->name('tenancy.leave');
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+});

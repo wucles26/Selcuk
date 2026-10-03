@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -28,9 +29,7 @@ class TenantProvisioningTest extends TestCase
 
     public function test_central_home_page_is_available_on_single_domain(): void
     {
-        $response = $this->get('/');
-
-        $response->assertOk();
+        $this->get('/')->assertOk();
     }
 
     public function test_creating_a_tenant_provisions_a_separate_database(): void
@@ -49,22 +48,8 @@ class TenantProvisioningTest extends TestCase
         tenancy()->end();
     }
 
-    public function test_tenant_app_uses_session_selected_database(): void
+    public function test_dashboard_requires_authentication(): void
     {
-        Tenant::create(['id' => 'demo']);
-
-        $this->from('/')
-            ->post('/tenancy/enter/demo')
-            ->assertRedirect('/app');
-
-        $this->get('/app')
-            ->assertOk()
-            ->assertJsonPath('tenant_id', 'demo')
-            ->assertJsonPath('database', database_path('tenantdemo'));
-    }
-
-    public function test_tenant_app_redirects_without_session(): void
-    {
-        $this->get('/app')->assertRedirect('/');
+        $this->get('/app')->assertRedirect(route('login'));
     }
 }
