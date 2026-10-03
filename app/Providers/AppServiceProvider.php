@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->app->booted(function () {
+            if ($this->app->runningInConsole()) {
+                return;
+            }
+
+            $request = request();
+            $host = $request->getHost();
+
+            if ($host !== '') {
+                URL::forceRootUrl(rtrim($request->getSchemeAndHttpHost().$request->getBasePath(), '/'));
+            }
+        });
     }
 }
