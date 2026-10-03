@@ -122,4 +122,34 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $this->assertNull(session('tenant_id'));
     }
+
+    public function test_home_page_shows_dashboard_link_for_authenticated_tenant_users(): void
+    {
+        $tenant = Tenant::create(['id' => 'demo', 'name' => 'Demo Co']);
+
+        tenancy()->initialize($tenant);
+        $user = User::factory()->create(['name' => 'Demo User']);
+        tenancy()->end();
+
+        $this->withSession(['tenant_id' => 'demo'])
+            ->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertSee('Dashboard')
+            ->assertDontSee('Giriş yap');
+    }
+
+    public function test_guest_middleware_redirects_authenticated_tenant_users_from_login(): void
+    {
+        $tenant = Tenant::create(['id' => 'demo', 'name' => 'Demo Co']);
+
+        tenancy()->initialize($tenant);
+        $user = User::factory()->create();
+        tenancy()->end();
+
+        $this->withSession(['tenant_id' => 'demo'])
+            ->actingAs($user)
+            ->get('/login')
+            ->assertRedirect(route('dashboard'));
+    }
 }

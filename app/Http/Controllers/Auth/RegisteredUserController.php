@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\TenantSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,8 +56,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
-        $request->session()->put('tenant_id', $tenant->getTenantKey());
-        tenancy()->end();
+        TenantSession::remember((string) $tenant->getTenantKey());
 
         return redirect()->route('dashboard');
     }
