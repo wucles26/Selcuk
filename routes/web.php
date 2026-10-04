@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -9,8 +7,8 @@ use Illuminate\Support\Facades\Route;
 | Central routes (single domain)
 |--------------------------------------------------------------------------
 |
-| Registration creates a tenant + first user. Login selects the tenant into
-| session and authenticates against that tenant's database.
+| Auth + app UI live in the Filament panel under /app.
+| Legacy URLs redirect there so bookmarks keep working.
 |
 */
 
@@ -19,9 +17,9 @@ Route::get('/', function () {
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('/register', [RegisteredUserController::class, 'store']);
-
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    Route::redirect('/login', '/app/login')->name('login');
+    Route::redirect('/register', '/app/register')->name('register');
 });
+
+Route::redirect('/admin', '/app');
+Route::redirect('/admin/{path}', '/app/{path}')->where('path', '.*');

@@ -72,19 +72,13 @@
 <body>
     <div class="card">
         <h1>{{ config('app.name', 'Laravel') }}</h1>
-        <p>Tek domain üzerinde multi-tenant uygulama. Organizasyonunuzu oluşturun veya giriş yapın.</p>
+        <p>Tek domain üzerinde multi-tenant uygulama. Organizasyonunuzu oluşturun veya Filament paneline giriş yapın.</p>
         <div class="actions">
             @auth
-                <a class="btn btn-primary" href="/app">Dashboard</a>
-                <a class="btn btn-secondary" href="/admin">Admin paneli</a>
-                <form method="POST" action="/app/logout">
-                    @csrf
-                    <button class="btn btn-secondary" type="submit">Çıkış</button>
-                </form>
+                <a class="btn btn-primary" href="/app">Panele git</a>
             @else
-                <a class="btn btn-primary" href="/login">Giriş yap</a>
-                <a class="btn btn-secondary" href="/register">Kayıt ol</a>
-                <a class="btn btn-secondary" href="/admin">Admin paneli</a>
+                <a class="btn btn-primary" href="/app/login">Giriş yap</a>
+                <a class="btn btn-secondary" href="/app/register">Kayıt ol</a>
             @endauth
         </div>
     </div>

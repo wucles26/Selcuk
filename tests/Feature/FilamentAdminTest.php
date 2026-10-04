@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Auth\Login;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class FilamentAdminTest extends TestCase
@@ -27,12 +29,12 @@ class FilamentAdminTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_admin_login_screen_can_be_rendered(): void
+    public function test_app_login_screen_can_be_rendered(): void
     {
-        $this->get('/admin/login')->assertOk();
+        $this->get('/app/login')->assertOk();
     }
 
-    public function test_authenticated_tenant_user_can_open_admin_panel(): void
+    public function test_authenticated_tenant_user_can_open_app_panel(): void
     {
         $tenant = Tenant::create([
             'id' => 'demo',
@@ -48,15 +50,35 @@ class FilamentAdminTest extends TestCase
 
         tenancy()->end();
 
-        $this->post('/login', [
-            'tenant' => 'demo',
-            'email' => 'demo@example.com',
-            'password' => 'password',
-        ])->assertRedirect(route('dashboard'));
+        Livewire::test(Login::class)
+            ->fillForm([
+                'tenant' => 'demo',
+                'email' => 'demo@example.com',
+                'password' => 'password',
+            ])
+            ->call('authenticate')
+            ->assertRedirect('/app');
 
         $this->actingAs($user)
             ->withSession(['tenant_id' => 'demo'])
-            ->get('/admin')
+            ->get('/app')
+            ->assertOk();
+    }
+
+    public function test_news_categories_resource_is_available(): void
+    {
+        $tenant = Tenant::create([
+            'id' => 'demo',
+            'name' => 'Demo Co',
+        ]);
+
+        tenancy()->initialize($tenant);
+        $user = User::factory()->create();
+        tenancy()->end();
+
+        $this->actingAs($user)
+            ->withSession(['tenant_id' => 'demo'])
+            ->get('/app/news-categories')
             ->assertOk();
     }
 }

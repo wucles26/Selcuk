@@ -9,17 +9,16 @@
 
 ## Selcuk
 
-Single-domain, session-based multi-tenancy (`stancl/tenancy`) with a **Filament v5** admin panel.
+Single-domain, session-based multi-tenancy (`stancl/tenancy`) with a **Filament v5** panel as the main UI.
 
 | Yol | Açıklama |
 | --- | --- |
 | `/` | Ana sayfa |
-| `/register` | Organizasyon + ilk kullanıcı kaydı |
-| `/login` | Organizasyon kodu + e-posta ile giriş |
-| `/app` | Kullanıcı dashboard |
-| `/admin` | Filament admin paneli (organizasyon kodu ile giriş) |
+| `/app/register` | Organizasyon + ilk kullanıcı kaydı (Filament) |
+| `/app/login` | Organizasyon kodu + e-posta ile giriş (Filament) |
+| `/app` | Filament panel (dashboard, haber kategorileri) |
 
-Admin panelinde tenant kullanıcıları **Haber Kategorileri** kaynağını yönetebilir.
+`/login`, `/register` ve `/admin` adresleri `/app` paneline yönlendirilir.
 
 ```bash
 composer install

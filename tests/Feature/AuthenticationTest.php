@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Auth\Login;
+use App\Filament\Auth\Register;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -29,34 +32,38 @@ class AuthenticationTest extends TestCase
 
     public function test_registration_screen_can_be_rendered(): void
     {
-        $this->get('/register')->assertOk();
+        $this->get('/app/register')->assertOk();
+        $this->get('/register')->assertRedirect('/app/register');
     }
 
     public function test_users_can_register_and_reach_dashboard(): void
     {
-        $response = $this->post('/register', [
-            'company' => 'Acme Inc',
-            'tenant' => 'acme',
-            'name' => 'Ada Lovelace',
-            'email' => 'ada@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ]);
+        Livewire::test(Register::class)
+            ->fillForm([
+                'company' => 'Acme Inc',
+                'tenant' => 'acme',
+                'name' => 'Ada Lovelace',
+                'email' => 'ada@example.com',
+                'password' => 'password',
+                'passwordConfirmation' => 'password',
+            ])
+            ->call('register')
+            ->assertHasNoFormErrors()
+            ->assertRedirect('/app');
 
-        $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
         $this->assertSame('acme', session('tenant_id'));
         $this->assertDatabaseHas('tenants', ['id' => 'acme'], config('tenancy.database.central_connection'));
 
         $this->get('/app')
             ->assertOk()
-            ->assertSee('Ada Lovelace')
-            ->assertSee('Acme Inc');
+            ->assertSee('Ada Lovelace');
     }
 
     public function test_login_screen_can_be_rendered(): void
     {
-        $this->get('/login')->assertOk();
+        $this->get('/app/login')->assertOk();
+        $this->get('/login')->assertRedirect('/app/login');
     }
 
     public function test_users_can_authenticate_with_tenant_credentials(): void
@@ -75,13 +82,16 @@ class AuthenticationTest extends TestCase
 
         tenancy()->end();
 
-        $response = $this->post('/login', [
-            'tenant' => 'demo',
-            'email' => 'demo@example.com',
-            'password' => 'password',
-        ]);
+        Livewire::test(Login::class)
+            ->fillForm([
+                'tenant' => 'demo',
+                'email' => 'demo@example.com',
+                'password' => 'password',
+            ])
+            ->call('authenticate')
+            ->assertHasNoFormErrors()
+            ->assertRedirect('/app');
 
-        $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
         $this->assertSame('demo', session('tenant_id'));
     }
@@ -97,11 +107,14 @@ class AuthenticationTest extends TestCase
         ]);
         tenancy()->end();
 
-        $this->post('/login', [
-            'tenant' => 'demo',
-            'email' => 'demo@example.com',
-            'password' => 'wrong-password',
-        ])->assertSessionHasErrors('email');
+        Livewire::test(Login::class)
+            ->fillForm([
+                'tenant' => 'demo',
+                'email' => 'demo@example.com',
+                'password' => 'wrong-password',
+            ])
+            ->call('authenticate')
+            ->assertHasFormErrors(['email']);
 
         $this->assertGuest();
     }
@@ -116,8 +129,8 @@ class AuthenticationTest extends TestCase
 
         $this->withSession(['tenant_id' => 'demo'])
             ->actingAs($user)
-            ->post(route('logout'))
-            ->assertRedirect(route('login'));
+            ->post('/app/logout')
+            ->assertRedirect('/app/login');
 
         $this->assertGuest();
         $this->assertNull(session('tenant_id'));
@@ -135,7 +148,7 @@ class AuthenticationTest extends TestCase
             ->actingAs($user)
             ->get('/')
             ->assertOk()
-            ->assertSee('Dashboard')
+            ->assertSee('Panele git')
             ->assertDontSee('Giriş yap');
     }
 
@@ -150,26 +163,29 @@ class AuthenticationTest extends TestCase
         $this->withSession(['tenant_id' => 'demo'])
             ->actingAs($user)
             ->get('/login')
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect('/app');
     }
 
     public function test_login_after_register_can_open_dashboard_without_redirect_loop(): void
     {
-        $this->post('/register', [
-            'company' => 'Loop Free Inc',
-            'tenant' => 'loopfree',
-            'name' => 'Loop Free',
-            'email' => 'loopfree@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ])->assertRedirect(route('dashboard'));
+        Livewire::test(Register::class)
+            ->fillForm([
+                'company' => 'Loop Free Inc',
+                'tenant' => 'loopfree',
+                'name' => 'Loop Free',
+                'email' => 'loopfree@example.com',
+                'password' => 'password',
+                'passwordConfirmation' => 'password',
+            ])
+            ->call('register')
+            ->assertRedirect('/app');
 
         $this->get('/app')
             ->assertOk()
             ->assertSee('Loop Free');
 
         $this->get('/login')
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect('/app');
 
         $this->get('/app')
             ->assertOk();
@@ -190,6 +206,12 @@ class AuthenticationTest extends TestCase
             ->assertRedirect('/');
 
         $this->get('/app')
-            ->assertRedirect(route('login'));
+            ->assertRedirect('/app/login');
+    }
+
+    public function test_legacy_admin_urls_redirect_to_app_panel(): void
+    {
+        $this->get('/admin')->assertRedirect('/app');
+        $this->get('/admin/login')->assertRedirect('/app/login');
     }
 }

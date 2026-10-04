@@ -50,6 +50,6 @@ class TenantProvisioningTest extends TestCase
 
     public function test_dashboard_requires_authentication(): void
     {
-        $this->get('/app')->assertRedirect(route('login'));
+        $this->get('/app')->assertRedirect('/app/login');
     }
 }
