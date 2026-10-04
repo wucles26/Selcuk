@@ -55,8 +55,8 @@ class RegisteredUserController extends Controller
         ]);
 
         Auth::login($user);
-        $request->session()->regenerate();
         TenantSession::remember((string) $tenant->getTenantKey());
+        $request->session()->regenerate();
 
         return redirect()->route('dashboard');
     }
