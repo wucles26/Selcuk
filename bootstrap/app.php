@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\BootstrapTenantFromSession;
+use App\Http\Middleware\InitializeTenancyBySession;
 use App\Support\TenantSession;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -49,13 +51,24 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->web(append: [
-            \App\Http\Middleware\BootstrapTenantFromSession::class,
+            BootstrapTenantFromSession::class,
         ]);
+
+        // Auth users live in tenant DBs. Tenancy must boot before Authenticate,
+        // otherwise /app short-circuits to /login and loops with guest redirects.
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            prepend: BootstrapTenantFromSession::class,
+        );
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            prepend: InitializeTenancyBySession::class,
+        );
 
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(function () {
             $tenantId = session('tenant_id')
-                ?? request()->cookie(\App\Http\Middleware\BootstrapTenantFromSession::TENANT_COOKIE);
+                ?? request()->cookie(BootstrapTenantFromSession::TENANT_COOKIE);
 
             if (! is_string($tenantId) || $tenantId === '') {
                 flushBrokenAuthSession();
