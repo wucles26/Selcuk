@@ -17,7 +17,7 @@ class TenantSession
             60 * 24 * 365,
             '/',
             null,
-            null,
+            self::secureCookies(),
             true,
             false,
             'lax'
@@ -28,5 +28,14 @@ class TenantSession
     {
         session()->forget('tenant_id');
         Cookie::queue(Cookie::forget(BootstrapTenantFromSession::TENANT_COOKIE));
+    }
+
+    private static function secureCookies(): bool
+    {
+        if (config('session.secure') !== null) {
+            return (bool) config('session.secure');
+        }
+
+        return str_starts_with((string) config('app.url'), 'https://');
     }
 }

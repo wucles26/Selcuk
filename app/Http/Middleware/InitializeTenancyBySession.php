@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Tenant;
+use App\Support\TenantSession;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,10 +18,16 @@ class InitializeTenancyBySession
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $tenantId = $request->session()->get('tenant_id');
+        if (tenancy()->initialized) {
+            return $next($request);
+        }
+
+        $tenantId = $request->session()->get('tenant_id')
+            ?? $request->cookie(BootstrapTenantFromSession::TENANT_COOKIE);
 
         if (! is_string($tenantId) || $tenantId === '') {
             Auth::logout();
+            TenantSession::forget();
 
             return redirect()->route('login')->with('error', 'Lütfen giriş yapın.');
         }
@@ -29,12 +36,13 @@ class InitializeTenancyBySession
 
         if (! $tenant) {
             Auth::logout();
-            $request->session()->forget('tenant_id');
+            TenantSession::forget();
 
             return redirect()->route('login')->with('error', 'Seçili organizasyon bulunamadı.');
         }
 
         tenancy()->initialize($tenant);
+        $request->session()->put('tenant_id', $tenant->getTenantKey());
 
         return $next($request);
     }

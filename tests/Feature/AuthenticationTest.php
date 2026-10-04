@@ -152,4 +152,44 @@ class AuthenticationTest extends TestCase
             ->get('/login')
             ->assertRedirect(route('dashboard'));
     }
+
+    public function test_login_after_register_can_open_dashboard_without_redirect_loop(): void
+    {
+        $this->post('/register', [
+            'company' => 'Loop Free Inc',
+            'tenant' => 'loopfree',
+            'name' => 'Loop Free',
+            'email' => 'loopfree@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->get('/app')
+            ->assertOk()
+            ->assertSee('Loop Free');
+
+        $this->get('/login')
+            ->assertRedirect(route('dashboard'));
+
+        $this->get('/app')
+            ->assertOk();
+    }
+
+    public function test_incomplete_auth_session_does_not_loop_between_login_and_app(): void
+    {
+        $tenant = Tenant::create(['id' => 'demo', 'name' => 'Demo Co']);
+
+        tenancy()->initialize($tenant);
+        $user = User::factory()->create();
+        tenancy()->end();
+
+        // Authenticated in the guard but missing tenant context should recover
+        // to a safe page instead of bouncing /login ↔ /app.
+        $this->actingAs($user)
+            ->get('/login')
+            ->assertRedirect('/');
+
+        $this->get('/app')
+            ->assertRedirect(route('login'));
+    }
 }

@@ -47,8 +47,8 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        $request->session()->regenerate();
         TenantSession::remember((string) $tenant->getTenantKey());
+        $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'));
     }

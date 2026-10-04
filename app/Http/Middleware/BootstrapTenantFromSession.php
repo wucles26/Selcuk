@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Tenant;
+use App\Support\TenantSession;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,7 +36,7 @@ class BootstrapTenantFromSession
         $tenant = Tenant::find($tenantId);
 
         if (! $tenant) {
-            $request->session()->forget('tenant_id');
+            TenantSession::forget();
 
             $response = $next($request);
             $response->headers->clearCookie(self::TENANT_COOKIE);
