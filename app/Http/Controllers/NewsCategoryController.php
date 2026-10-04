@@ -78,7 +78,8 @@ class NewsCategoryController extends Controller
             $data['image_path'] = $request->file('image')->store('news-categories', 'public');
         }
         unset($data['image']);
-        $data['content'] = strip_tags($data['content'] ?? '', '<p><br><strong><em><ul><ol><li><a><h2><h3>');
+        // Do not persist attributes (especially javascript: URLs) from user HTML.
+        $data['content'] = strip_tags($data['content'] ?? '', '<p><br><strong><em><ul><ol><li><h2><h3>');
 
         $category->fill($data)->save();
     }
