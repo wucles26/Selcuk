@@ -76,6 +76,7 @@
         <div class="actions">
             @auth
                 <a class="btn btn-primary" href="/app">Dashboard</a>
+                <a class="btn btn-secondary" href="/admin">Admin paneli</a>
                 <form method="POST" action="/app/logout">
                     @csrf
                     <button class="btn btn-secondary" type="submit">Çıkış</button>
@@ -83,6 +84,7 @@
             @else
                 <a class="btn btn-primary" href="/login">Giriş yap</a>
                 <a class="btn btn-secondary" href="/register">Kayıt ol</a>
+                <a class="btn btn-secondary" href="/admin">Admin paneli</a>
             @endauth
         </div>
     </div>

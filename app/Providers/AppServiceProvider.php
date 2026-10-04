@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Support\TenantSession;
+use Illuminate\Auth\Events\Logout;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +23,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(Logout::class, function (): void {
+            TenantSession::forget();
+
+            if (tenancy()->initialized) {
+                tenancy()->end();
+            }
+        });
+
         $appUrl = (string) config('app.url');
 
         // Railway (and most PaaS) terminate TLS before PHP. Prefer APP_URL scheme,

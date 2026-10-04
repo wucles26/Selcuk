@@ -7,6 +7,29 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Selcuk
+
+Single-domain, session-based multi-tenancy (`stancl/tenancy`) with a **Filament v5** admin panel.
+
+| Yol | Açıklama |
+| --- | --- |
+| `/` | Ana sayfa |
+| `/register` | Organizasyon + ilk kullanıcı kaydı |
+| `/login` | Organizasyon kodu + e-posta ile giriş |
+| `/app` | Kullanıcı dashboard |
+| `/admin` | Filament admin paneli (organizasyon kodu ile giriş) |
+
+Admin panelinde tenant kullanıcıları **Haber Kategorileri** kaynağını yönetebilir.
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan storage:link
+php artisan serve
+```
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

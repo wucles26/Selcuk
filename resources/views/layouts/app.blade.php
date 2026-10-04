@@ -124,6 +124,7 @@
         <a class="brand" href="{{ route('dashboard') }}">{{ config('app.name', 'Laravel') }}</a>
         <div class="topbar-meta">
             <a class="nav-link" href="{{ route('news-categories.index') }}">Haber kategorileri</a>
+            <a class="nav-link" href="/admin">Admin paneli</a>
             <span class="badge">{{ tenant('id') }}</span>
             <span>{{ auth()->user()->name }}</span>
             <form method="POST" action="/app/logout">
